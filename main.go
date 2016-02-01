@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,29 +9,35 @@ import (
 )
 
 func scraper(url string) {
+	// GET
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
-
 	defer resp.Body.Close()
+
+	// dump response and include body
 	dump, err := httputil.DumpResponse(resp, true)
 	if err != nil {
 		panic(err)
 	}
 
-	buf := bytes.NewBuffer(dump)
+	// convert dumped response body to string
+	respString := string(dump)
 
-	respString := buf.String()
+	// split the string
 	shards := strings.Split(respString, "window._sharedData = ")
-	shards2 := strings.Split(shards[1], ";</script>")
+	instaJson := strings.Split(shards[1], ";</script>")
 
+	// instaResp to hold json
 	var data instaResp
 
-	if err := json.Unmarshal([]byte(shards2[0]), &data); err != nil {
+	// unmarshal json into &data
+	if err := json.Unmarshal([]byte(instaJson[0]), &data); err != nil {
 		panic(err)
 	}
 
+	// print shortcode for first node -- will use with open oembed insta api endpoint
 	fmt.Println(data.EntryData.Profilepage[0].User.Media.Nodes[0].Code)
 }
 
