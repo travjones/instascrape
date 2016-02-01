@@ -30,15 +30,17 @@ func scraper(url string) {
 	instaJson := strings.Split(shards[1], ";</script>")
 
 	// instaResp to hold json
-	var data instaResp
+	var data InstaResp
 
 	// unmarshal json into &data
 	if err := json.Unmarshal([]byte(instaJson[0]), &data); err != nil {
 		panic(err)
 	}
 
-	// print shortcode for first node -- will use with open oembed insta api endpoint
-	fmt.Println(data.EntryData.Profilepage[0].User.Media.Nodes[0].Code)
+	// print shortcode for latest 12 nodes (media) -- will use with open oembed insta api endpoint
+	for i := 0; i < 12; i++ {
+		fmt.Println(i, data.EntryData.Profilepage[0].User.Media.Nodes[i].Code)
+	}
 }
 
 func main() {

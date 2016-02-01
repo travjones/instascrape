@@ -1,6 +1,6 @@
 package main
 
-type instaResp struct {
+type InstaResp struct {
 	CountryCode  string `json:"country_code"`
 	LanguageCode string `json:"language_code"`
 	Gatekeepers  struct {
