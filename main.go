@@ -30,10 +30,10 @@ func scraper(url string) {
 	instaJson := strings.Split(shards[1], ";</script>")
 
 	// instaResp to hold json
-	var data InstaWebResp
+	var iwr InstaWebResp
 
-	// unmarshal json into &data
-	if err := json.Unmarshal([]byte(instaJson[0]), &data); err != nil {
+	// unmarshal json into &iwr
+	if err := json.Unmarshal([]byte(instaJson[0]), &iwr); err != nil {
 		panic(err)
 	}
 
@@ -43,23 +43,24 @@ func scraper(url string) {
 	// }
 
 	// slice of InstaOembedReqs
-	var InstaOembedReqs []InstaOembedReq
+	var ioreqs []InstaOembedReq
 
 	// for each piece of media add shortcode and url and then append to slice
 	for i := 0; i < 12; i++ {
 		var ior InstaOembedReq
-		ior.ShortCode = data.EntryData.Profilepage[0].User.Media.Nodes[i].Code
-		ior.Url = "https://api.instagram.com/oembed/?url=http://instagr.am/p/" + data.EntryData.Profilepage[0].User.Media.Nodes[i].Code + "&omitscript=true"
-		InstaOembedReqs = append(InstaOembedReqs, ior)
+		ior.ShortCode = iwr.EntryData.Profilepage[0].User.Media.Nodes[i].Code
+		// omitting script -- make sure you pull it in on the page
+		ior.Url = "https://api.instagram.com/oembed/?url=http://instagr.am/p/" + iwr.EntryData.Profilepage[0].User.Media.Nodes[i].Code + "&omitscript=true"
+		ioreqs = append(ioreqs, ior)
 	}
 
 	// slice of InstaOembedResp
-	var InstaOembedResps []InstaOembedResp
+	var ioresps []InstaOembedResp
 
 	// for each piece of media GET JSON
 	for i := 0; i < 12; i++ {
 		// new GET req using oembed URL
-		req, err := http.NewRequest("GET", InstaOembedReqs[i].Url, nil)
+		req, err := http.NewRequest("GET", ioreqs[i].Url, nil)
 		if err != nil {
 			panic(err)
 		}
@@ -67,12 +68,12 @@ func scraper(url string) {
 		// da muthafuckin client
 		client := &http.Client{}
 
-		// make your request boo boo and drop that thang in resp
+		// Do request and drop response in resp
 		resp, err := client.Do(req)
 		if err != nil {
 			panic(err)
 		}
-		defer resp.Body.Close() // close dat shit or you leak memory bruh
+		defer resp.Body.Close() // close dat shit or leak memory
 
 		// fresh IOResp to hold each response
 		var ioresp InstaOembedResp
@@ -83,15 +84,15 @@ func scraper(url string) {
 		}
 
 		// append each response to the IOResps slice
-		InstaOembedResps = append(InstaOembedResps, ioresp)
+		ioresps = append(ioresps, ioresp)
 	}
 
 	// print HTML for each insta embed
 	for i := 0; i < 12; i++ {
-		fmt.Println(InstaOembedResps[i].HTML)
+		fmt.Println(ioresps[i].HTML)
 	}
 }
 
 func main() {
-	scraper("http://instagram.com/habitatskateboards")
+	scraper("http://instagram.com/thrashermag")
 }
